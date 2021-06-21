@@ -41,5 +41,8 @@
   "bugs": {
     "url": "https://github.com/georgy7/RussianNounsJS/issues"
   },
-  "homepage": "https://github.com/georgy7/RussianNounsJS#readme"
+  "homepage": "https://github.com/georgy7/RussianNounsJS#readme",
+  "dependencies": {
+    "gulp": "^4.0.2"
+  }
 }
