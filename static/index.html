@@ -127,12 +127,11 @@ function changed()
     var output2 = document.getElementById("output2")
     output2.innerText = ""
     //console.log(output)
-
     for(var i = 0; i < list.length; i++) {
         element = list[i]
         //console.log(element)
         var words = element.value.split(" ")
-        for(j in words) {
+        for(var j = 0; j < words.length; j++) {
             var word = words[j]
             if(undecided.find(el => el.toLowerCase() === word.toLowerCase()))
             {
@@ -161,6 +160,7 @@ function changed()
             var Plural = false
             var Indeclinable = false
             var Surname = false
+            var isnoun = false
             for(k in css_list)
             {
                 css_class = css_list[k]
@@ -194,19 +194,35 @@ function changed()
                 is_undefined_gender = true
                 Gender = findGender(word) || RussianNouns.Gender.COMMON
             }
-            if(["чужой", "мой", "твой", ].indexOf(word) != -1){
+            if(["ая","яя","ое","ее","ие","ые","ой"].indexOf(word.slice(-2)) == -1) // если не прилагательное, то считать, что существительное, да
+            {
+                isnoun = true
+            }
+            // Окончание прилагательных на ой
+            if(["хой","жой",].indexOf(word.slice(-3).toLowerCase()) != -1){
                 Surname = true
             }
+            if(["лой", "мой", "ной"].indexOf(word.slice(-3).toLowerCase()) != -1){
+                Surname = true
+                fixINSTRUMENTAL = true
+            }
             var lemma = L({text: word, gender: Gender, pluraleTantum: Plural, indeclinable: Indeclinable, surname: Surname})
+            
             words[j] = rne.decline(lemma, Case)[0]
             output2.innerText += `\nword: ${word} --> ${words[j]} (${Case})\n`
-            output2.innerText += is_undefined_gender ? `Gender: ${Gender}\n` : `Gender: undefined -> ${Gender}\n`
+            output2.innerText += is_undefined_gender ? `Gender: undefined -> ${Gender}\n` : `Gender: ${Gender}\n`
             output2.innerText += `Plural: ${Plural}\n`
+            output2.innerText += `surname: ${Surname}\n`
             for(ii in RussianNouns.Case)
             {
                 output2.innerText += `\n${RussianNouns.Case[ii][0].toUpperCase()}: ${rne.decline(L({text: word, gender: Gender, pluraleTantum: Plural, indeclinable: Indeclinable, surname: Surname}), RussianNouns.Case[ii])[0]}`
             }
             output2.innerText += `\n-----------------------------------------\n`
+            if(isnoun)
+            {
+                console.log("EXIT: связь не согласование")
+                break
+            }
         }
         output.innerText = words.join(" ")
     }
