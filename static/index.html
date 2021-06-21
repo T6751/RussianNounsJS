@@ -92,7 +92,7 @@ function findGender(word)
 
 function changed()
 {
-    console.log("changed")
+    //console.log("changed")
 
     //var list = document.getElementsByTagName("L") 
     var list = [document.getElementById("in")]
@@ -105,6 +105,8 @@ function changed()
     //console.log(css)
 
     var output = document.getElementById("output")
+    var output2 = document.getElementById("output2")
+    output2.innerText = ""
     //console.log(output)
 
     for(var i = 0; i < list.length; i++) {
@@ -115,25 +117,26 @@ function changed()
             var word = words[j]
             if(undecided.find(el => el.toLowerCase() === word.toLowerCase()))
             {
-                console.log("undecided - continue")
+                console.log(`CONTINUE: ${word} is undecided`)
                 continue
             }
             if(word.trim() === "")
             {
-                console.log("space - continue")
+                console.log(`CONTINUE: spaces`)
                 continue
             }
             if(word[0] === "(" || word[0] === "[" || word[0] === "{")
             {
-                console.log("([{ break")
+                console.log(`EXIT: "([{" `)
                 break
             }
             css_list = css.value.split(" ")
             var Case = null
             var Gender = null
+            var is_undefined_gender = false
             var Plural = false
             var Indeclinable = false
-            var Auto = false
+            var Surname = false
             for(k in css_list)
             {
                 css_class = css_list[k]
@@ -157,30 +160,29 @@ function changed()
                 }
                 console.log(`undefined class: "${css_class}"`)
             }
-            console.log(`word: ${word}`)
-            console.log(`Case: ${Case}`)
             if(!Case)
             {
                 console.log("Error: Не указан падеж")
                 return
             }
-            if(Gender)
-            {
-                console.log(`Gender: ${Gender}`)
-            }
             if(!Gender) // Попытаться определить род по окончанию
             {
-                Gender = findGender(word)
-                if(!Gender)
-                {
-                    Gender = RussianNouns.Gender.COMMON
-                }
-                console.log(`Gender: undefined -> ${Gender}`)
+                is_undefined_gender = true
+                Gender = findGender(word) || RussianNouns.Gender.COMMON
             }
-            console.log(`Plural: ${Plural}`)
-           
-            var lemma = L({text: word, gender: Gender, pluraleTantum: Plural, indeclinable: Indeclinable})
+            if(["чужой", "мой", "твой", ].indexOf(word) != -1){
+                Surname = true
+            }
+            var lemma = L({text: word, gender: Gender, pluraleTantum: Plural, indeclinable: Indeclinable, surname: Surname})
             words[j] = rne.decline(lemma, Case)[0]
+            output2.innerText += `\nword: ${word} --> ${words[j]} (${Case})\n`
+            output2.innerText += is_undefined_gender ? `Gender: ${Gender}\n` : `Gender: undefined -> ${Gender}\n`
+            output2.innerText += `Plural: ${Plural}\n`
+            for(ii in RussianNouns.Case)
+            {
+                output2.innerText += `\n${RussianNouns.Case[ii][0].toUpperCase()}: ${rne.decline(L({text: word, gender: Gender, pluraleTantum: Plural, indeclinable: Indeclinable, surname: Surname}), RussianNouns.Case[ii])[0]}`
+            }
+            output2.innerText += `\n-----------------------------------------\n`
         }
         output.innerText = words.join(" ")
     }
@@ -195,6 +197,7 @@ function changed()
         <input class="form-control" id="in" type="text" onkeyup="changed()" placeholder="слова" required="required" style="width:80%" autofocus>
     </div>
         <div class="center" id="output"></div>
+        <div class="center" id="output2"></div>
     </div>
 </body>
 
