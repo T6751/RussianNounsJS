@@ -125,6 +125,13 @@ function changed()
 
     var output = document.getElementById("output")
     var output2 = document.getElementById("output2")
+    var table = []
+    iii = 0
+    for(ii in RussianNouns.Case)
+    {
+        table[iii] = `${RussianNouns.Case[ii][0].toUpperCase()}: `
+        iii++
+    }
     output2.innerText = ""
     //console.log(output)
     for(var i = 0; i < list.length; i++) {
@@ -199,12 +206,8 @@ function changed()
                 isnoun = true
             }
             // Окончание прилагательных на ой
-            if(["хой","жой",].indexOf(word.slice(-3).toLowerCase()) != -1){
+            if(["хой","жой","лой", "мой", "ной"].indexOf(word.slice(-3).toLowerCase()) != -1){
                 Surname = true
-            }
-            if(["лой", "мой", "ной"].indexOf(word.slice(-3).toLowerCase()) != -1){
-                Surname = true
-                fixINSTRUMENTAL = true
             }
             var lemma = L({text: word, gender: Gender, pluraleTantum: Plural, indeclinable: Indeclinable, surname: Surname})
             
@@ -213,9 +216,11 @@ function changed()
             output2.innerText += is_undefined_gender ? `Gender: undefined -> ${Gender}\n` : `Gender: ${Gender}\n`
             output2.innerText += `Plural: ${Plural}\n`
             output2.innerText += `surname: ${Surname}\n`
+            iii = 0
             for(ii in RussianNouns.Case)
             {
-                output2.innerText += `\n${RussianNouns.Case[ii][0].toUpperCase()}: ${rne.decline(L({text: word, gender: Gender, pluraleTantum: Plural, indeclinable: Indeclinable, surname: Surname}), RussianNouns.Case[ii])[0]}`
+                table[iii] += `${rne.decline(L({text: word, gender: Gender, pluraleTantum: Plural, indeclinable: Indeclinable, surname: Surname}), RussianNouns.Case[ii])[0]} `
+                iii++
             }
             output2.innerText += `\n-----------------------------------------\n`
             if(isnoun)
@@ -224,7 +229,7 @@ function changed()
                 break
             }
         }
-        output.innerText = words.join(" ")
+        output.innerText = table.join("\n")
     }
 }
 </script>
