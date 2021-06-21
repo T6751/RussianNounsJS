@@ -50,6 +50,13 @@ body {
 
 const rne = new RussianNouns.Engine();
 const CASE = {
+    "им" : RussianNouns.Case.NOMINATIVE,
+    "ро" : RussianNouns.Case.GENITIVE,
+    "да" : RussianNouns.Case.DATIVE,
+    "ви" : RussianNouns.Case.ACCUSATIVE,
+    "тв" : RussianNouns.Case.INSTRUMENTAL,
+    "пр" : RussianNouns.Case.PREPOSITIONAL,
+    "ме" : RussianNouns.Case.LOCATIVE,
     "и" : RussianNouns.Case.NOMINATIVE,
     "р" : RussianNouns.Case.GENITIVE,
     "д" : RussianNouns.Case.DATIVE,
@@ -59,14 +66,29 @@ const CASE = {
     "м" : RussianNouns.Case.LOCATIVE
 }
 const GENDER = {
-    "ж" : RussianNouns.Gender.FEMININE,
-    "м" : RussianNouns.Gender.MASCULINE,
-    "с" : RussianNouns.Gender.NEUTER,
-    "о" : RussianNouns.Gender.COMMON
+    "жен" : RussianNouns.Gender.FEMININE,
+    "муж" : RussianNouns.Gender.MASCULINE,
+    "ср": RussianNouns.Gender.NEUTER,
+    "общ" : RussianNouns.Gender.COMMON,
+    "neuter" : RussianNouns.Gender.NEUTER,
+    "male" : RussianNouns.Gender.MASCULINE,
+    "female" : RussianNouns.Gender.FEMININE
 }
 
 const L = RussianNouns.createLemma;
-const Gender = RussianNouns.Gender;
+
+function findGender(word)
+{
+    if(["ая", "ия"].indexOf(word.slice(-2)) != -1 || ["а","я"].indexOf(word.slice(-1)) != -1) {
+        return RussianNouns.Gender.FEMININE
+    }
+    if(["ий"].indexOf(word.slice(-2)) != -1 || ["ь","й"].indexOf(word.slice(-1)) != -1) {
+        return RussianNouns.Gender.MASCULINE
+    }
+    if(["о","е"].indexOf(word.slice(-1)) != -1) {
+        return RussianNouns.Gender.NEUTER
+    }
+}
 
 function changed()
 {
@@ -74,49 +96,91 @@ function changed()
 
     //var list = document.getElementsByTagName("L") 
     var list = [document.getElementById("in")]
-    console.log(list)
+    //console.log(list)
     
     var undecided = document.getElementById("undecided").value.split(" ")
-    console.log(undecided)
+    //console.log(undecided)
 
     var css = document.getElementById("css")
-    console.log(css)
+    //console.log(css)
 
     var output = document.getElementById("output")
-    console.log(output)
+    //console.log(output)
 
     for(var i = 0; i < list.length; i++) {
         element = list[i]
-        console.log(element)
+        //console.log(element)
         var words = element.value.split(" ")
         for(j in words) {
             var word = words[j]
             if(undecided.find(el => el.toLowerCase() === word.toLowerCase()))
             {
-                console.log("continue")
+                console.log("undecided - continue")
+                continue
+            }
+            if(word.trim() === "")
+            {
+                console.log("space - continue")
                 continue
             }
             if(word[0] === "(" || word[0] === "[" || word[0] === "{")
             {
-                console.log("break")
+                console.log("([{ break")
                 break
             }
-            console.log(word)
-            /*
-            console.log(element.className.split(" ")[0] in CASE) // падеж
-            console.log(element.className.split(" ")[1] == "мн") // мн число?
-            console.log(element.innerText)
-            console.log(rne.pluralize(L({text: word, gender: Gender.COMMON}))[0])*/
-            var c = (css.value.split(" ")[0] in CASE) ? CASE[css.value.split(" ")[0]] : RussianNouns.Case.NOMINATIVE
-            var isplural = (css.value.split(" ")[1] == "мн")
-            console.log(c)
-            console.log(isplural)
-            var g = isplural ? Gender.MASCULINE : Gender.COMMON
-            console.log(g)
-            var lemma = L({text: word, gender: g, pluraleTantum: isplural})
-            console.log(lemma)
-            words[j] = rne.decline(lemma, c)[0]
-            console.log(words[j])
+            css_list = css.value.split(" ")
+            var Case = null
+            var Gender = null
+            var Plural = false
+            var Indeclinable = false
+            var Auto = false
+            for(k in css_list)
+            {
+                css_class = css_list[k]
+                if(css_class.trim() === "")
+                    continue
+                css_class = css_class.toLowerCase()
+                if(css_class in CASE)
+                {
+                    Case = CASE[css_class]
+                    continue
+                }
+                if(css_class in GENDER)
+                {
+                    Gender = GENDER[css_class]
+                    continue
+                }
+                if(css_class == "мн" || css_class == "plural")
+                {
+                    Plural = true
+                    continue
+                }
+                console.log(`undefined class: "${css_class}"`)
+            }
+            console.log(`word: ${word}`)
+            console.log(`Case: ${Case}`)
+            if(!Case)
+            {
+                console.log("Error: Не указан падеж")
+                return
+            }
+            if(Gender)
+            {
+                console.log(`Gender: ${Gender}`)
+            }
+            if(!Gender) // Попытаться определить род по окончанию
+            {
+                Gender = findGender(word)
+                if(!Gender)
+                {
+                    Gender = RussianNouns.Gender.COMMON
+                }
+                console.log(`Gender: undefined -> ${Gender}`)
+            }
+            console.log(`Plural: ${Plural}`)
+           
+            var lemma = L({text: word, gender: Gender, pluraleTantum: Plural, indeclinable: Indeclinable})
+            words[j] = rne.decline(lemma, Case)[0]
         }
         output.innerText = words.join(" ")
     }
@@ -127,7 +191,7 @@ function changed()
         <input class="form-control" id="undecided" type="text" onkeyup="changed()" placeholder="Список несклоняемых слов, аббревиатур">
     </div>
     <div class="center">
-        <input class="form-control" id="css" type="text" onkeyup="changed()" placeholder="L class=" required="required" style="width:65px">
+        <input class="form-control" id="css" type="text" onkeyup="changed()" placeholder="L class=" required="required" style="width:105px">
         <input class="form-control" id="in" type="text" onkeyup="changed()" placeholder="слова" required="required" style="width:80%" autofocus>
     </div>
         <div class="center" id="output"></div>
