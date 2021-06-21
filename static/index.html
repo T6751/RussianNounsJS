@@ -126,12 +126,14 @@ function changed()
     var output = document.getElementById("output")
     var output2 = document.getElementById("output2")
     var table = []
+    
     iii = 0
     for(ii in RussianNouns.Case)
     {
         table[iii] = `${RussianNouns.Case[ii][0].toUpperCase()}: `
         iii++
     }
+    output.innerText = ""
     output2.innerText = ""
     //console.log(output)
     for(var i = 0; i < list.length; i++) {
@@ -158,6 +160,12 @@ function changed()
             if(word[0] === "(" || word[0] === "[" || word[0] === "{")
             {
                 console.log(`EXIT: "([{" `)
+                break
+            }
+            const regex = /[^\u0430-\u044f]$/g;
+            if(word.toLowerCase().trim().search(regex) != -1)
+            {
+                console.log(`EXIT: "${word} - not cyrillic end" `)
                 break
             }
             css_list = css.value.split(" ")
@@ -201,7 +209,7 @@ function changed()
                 is_undefined_gender = true
                 Gender = findGender(word) || RussianNouns.Gender.COMMON
             }
-            if(["ая","яя","ое","ее","ие","ые","ой"].indexOf(word.slice(-2)) == -1) // если не прилагательное, то считать, что существительное, да
+            if(["ая","яя","ое","ее","ие","ые","ой","ий","ый"].indexOf(word.slice(-2)) == -1) // если не прилагательное, то считать, что существительное, да
             {
                 isnoun = true
             }
@@ -229,7 +237,7 @@ function changed()
                 break
             }
         }
-        output.innerText = table.join("\n")
+        output.innerText += words.join(" ") + "\n\n" + table.join("\n")
     }
 }
 </script>
