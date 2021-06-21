@@ -43,6 +43,7 @@
   },
   "homepage": "https://github.com/georgy7/RussianNounsJS#readme",
   "dependencies": {
-    "gulp": "^4.0.2"
+    "gulp": "^4.0.2",
+    "gulp-gh-pages": "^0.5.4"
   }
 }
